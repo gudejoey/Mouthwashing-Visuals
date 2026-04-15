@@ -17,14 +17,96 @@
         background: #000;
         overflow: hidden;
       }
+
+      /* ── Default (viewer) layout ── */
       #frame {
         width: 100vw;
         height: 100vh;
         border: none;
         display: block;
       }
-      /* Transparent overlay sits on top of the iframe so the parent
-         page keeps keyboard focus no matter where the user clicks. */
+      #presenter-bar {
+        display: none;
+      }
+
+      /* ── Presenter (host) layout ── */
+      body.presenter-mode {
+        display: flex;
+        flex-direction: column;
+      }
+      body.presenter-mode #frame {
+        width: 100%;
+        height: calc(100vh - 152px);
+        flex-shrink: 0;
+      }
+      body.presenter-mode #overlay {
+        bottom: 152px; /* leave preview bar clickable */
+      }
+      body.presenter-mode #presenter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 152px;
+        background: #111;
+        border-top: 1px solid #222;
+        padding: 0 12px;
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+
+      /* Preview cards */
+      .preview-card {
+        position: relative;
+        width: 192px;
+        height: 108px;
+        overflow: hidden;
+        border: 2px solid #333;
+        border-radius: 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: border-color 0.1s;
+      }
+      .preview-card:hover {
+        border-color: #666;
+      }
+      .preview-card.active {
+        border-color: #fff;
+        box-shadow: 0 0 0 1px #fff;
+      }
+      .preview-card.empty {
+        background: #0a0a0a;
+        cursor: default;
+        border-color: #1a1a1a;
+      }
+      .preview-card iframe {
+        width: 1920px;
+        height: 1080px;
+        transform: scale(0.1);
+        transform-origin: top left;
+        pointer-events: none;
+        border: none;
+      }
+      .preview-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.75);
+        color: rgba(255, 255, 255, 0.7);
+        font-family: monospace;
+        font-size: 9px;
+        padding: 2px 4px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .preview-card.active .preview-label {
+        color: #fff;
+      }
+
+      /* Transparent overlay keeps keyboard focus on the parent page */
       #overlay {
         position: fixed;
         inset: 0;
@@ -43,20 +125,21 @@
         letter-spacing: 0.08em;
         transition: opacity 0.2s;
       }
-      /* hidden state toggled by N key */
-      body.ui-hidden #hud {
-        opacity: 0;
+      body.presenter-mode #hud {
+        bottom: 168px; /* sit above the preview bar */
       }
+
+      /* N key toggles UI visibility */
+      body.ui-hidden #hud    { opacity: 0; }
       body.ui-hidden,
-      body.ui-hidden #overlay {
-        cursor: none;
-      }
+      body.ui-hidden #overlay { cursor: none; }
     </style>
   </head>
   <body>
     <iframe id="frame" allow="autoplay; fullscreen"></iframe>
     <div id="overlay"></div>
     <div id="hud"></div>
+    <div id="presenter-bar"></div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -75,7 +158,7 @@
       const firebaseConfig = {
         apiKey: "AIzaSyB4zuxfFvcZb3d2qQCIt1xROtTbbPyJtqk",
         authDomain: "mouthwashing-visuals.firebaseapp.com",
-        databaseURL: "https://mouthwashing-visuals-default-rtdb.firebaseio.com/", // ← e.g. https://mouthwashing-visuals-default-rtdb.firebaseio.com
+        databaseURL: "https://mouthwashing-visuals-default-rtdb.firebaseio.com/",
         projectId: "mouthwashing-visuals",
         storageBucket: "mouthwashing-visuals.firebasestorage.app",
         messagingSenderId: "903836033913",
@@ -168,9 +251,12 @@
       const slideRef = firebase.database().ref("currentSlide");
 
       let current = 0;
-      const frame = document.getElementById("frame");
-      const hud = document.getElementById("hud");
+      const frame   = document.getElementById("frame");
+      const hud     = document.getElementById("hud");
       const overlay = document.getElementById("overlay");
+
+      // Apply presenter layout for the host
+      if (isHost) document.body.classList.add("presenter-mode");
 
       // Build audio object once so replay is instant (seek to 0 each time)
       let audio = null;
@@ -185,12 +271,70 @@
         audio.play().catch(() => {});
       }
 
+      // ── Presenter preview bar ──────────────────────────────────
+      const PREVIEW_SLOTS = 5;   // total cards shown (2 before + current + 2 after)
+      const PREVIEW_OFFSET = 2;  // index of the "current" card in the row
+
+      let previewSlots = []; // { card, iframe, label }
+
+      function initPreviewBar() {
+        if (!isHost) return;
+        const bar = document.getElementById("presenter-bar");
+        for (let i = 0; i < PREVIEW_SLOTS; i++) {
+          const card  = document.createElement("div");
+          const pIframe = document.createElement("iframe");
+          const label = document.createElement("div");
+
+          card.className  = "preview-card";
+          label.className = "preview-label";
+          pIframe.allow   = "autoplay";
+
+          card.appendChild(pIframe);
+          card.appendChild(label);
+          bar.appendChild(card);
+
+          previewSlots.push({ card, iframe: pIframe, label });
+
+          // Capture slot offset at creation time so click always works
+          const slotOffset = i - PREVIEW_OFFSET;
+          card.addEventListener("click", () => {
+            const target = current + slotOffset;
+            if (target >= 0 && target < SLIDES.length) goTo(target);
+          });
+        }
+      }
+
+      function updatePreviewBar() {
+        if (!isHost) return;
+        previewSlots.forEach((slot, i) => {
+          const slotOffset  = i - PREVIEW_OFFSET;
+          const slideIndex  = current + slotOffset;
+          const inRange     = slideIndex >= 0 && slideIndex < SLIDES.length;
+
+          slot.card.classList.toggle("active", slotOffset === 0);
+          slot.card.classList.toggle("empty",  !inRange);
+
+          if (inRange) {
+            const newSrc = SLIDES[slideIndex];
+            // Only update src when the slide actually changes to avoid reloads
+            if (!slot.iframe.src.endsWith(newSrc)) slot.iframe.src = newSrc;
+            slot.label.textContent = `${slideIndex + 1}  ${newSrc}`;
+          } else {
+            slot.iframe.src = "about:blank";
+            slot.label.textContent = "";
+          }
+        });
+      }
+
+      // ── Core slide functions ───────────────────────────────────
+
       // loadSlide: update local state only, no Firebase write.
       function loadSlide(index) {
         current = Math.max(0, Math.min(SLIDES.length - 1, index));
         frame.src = SLIDES[current];
         const mode = isHost ? "HOST  " : "VIEWER  ";
         hud.textContent = `${mode}${current + 1} / ${SLIDES.length}  —  ${SLIDES[current]}`;
+        updatePreviewBar();
       }
 
       // goTo: update local state AND broadcast to Firebase (host only).
@@ -208,8 +352,6 @@
       });
 
       // After each slide loads, play any video inside the iframe.
-      // This call is tied to the user gesture (keypress) so the browser
-      // allows audio even without the muted attribute.
       frame.addEventListener("load", () => {
         try {
           const video = frame.contentDocument.querySelector("video");
@@ -218,18 +360,29 @@
       });
 
       // ── Focus lock ─────────────────────────────────────────────
-      // The overlay intercepts all clicks so focus never moves to
-      // the iframe. If focus is lost anyway (e.g. alt-tab back),
-      // clicking anywhere on the overlay reclaims it.
       overlay.addEventListener("click", () => window.focus());
       window.addEventListener("blur", () => {
-        // Small delay so the browser finishes its own focus handling first
         setTimeout(() => window.focus(), 0);
       });
 
       // ── Key handling ───────────────────────────────────────────
       document.addEventListener("keydown", (e) => {
-        if (!isHost) return; // viewers cannot control slides
+        // N and F work for everyone
+        if (e.key === "n" || e.key === "N") {
+          document.body.classList.toggle("ui-hidden");
+          return;
+        }
+        if (e.key === "f" || e.key === "F") {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen().catch(() => {});
+          }
+          return;
+        }
+
+        // Navigation: host only
+        if (!isHost) return;
         if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
           e.preventDefault();
           playSound();
@@ -238,19 +391,12 @@
           e.preventDefault();
           playSound();
           goTo(current - 1);
-        } else if (e.key === "n" || e.key === "N") {
-          document.body.classList.toggle("ui-hidden");
-        } else if (e.key === "f" || e.key === "F") {
-          if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
-          } else {
-            document.exitFullscreen().catch(() => {});
-          }
         }
       });
 
       // Start on first slide locally; Firebase listener will immediately
       // override to the stored value if one exists.
+      initPreviewBar();
       loadSlide(0);
     </script>
   </body>
