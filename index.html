@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Presenter</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body {
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
         width: 100vw;
         height: 100vh;
         background: #000;
@@ -39,69 +44,131 @@
         transition: opacity 0.2s;
       }
       /* hidden state toggled by N key */
-      body.ui-hidden #hud    { opacity: 0; }
+      body.ui-hidden #hud {
+        opacity: 0;
+      }
       body.ui-hidden,
-      body.ui-hidden #overlay { cursor: none; }
+      body.ui-hidden #overlay {
+        cursor: none;
+      }
     </style>
   </head>
   <body>
-
     <iframe id="frame" allow="autoplay; fullscreen"></iframe>
     <div id="overlay"></div>
     <div id="hud"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
     <script>
       // ═══════════════════════════════════════════════════════════
       //  MASTER CONFIGURATION — only edit values in this block
       // ═══════════════════════════════════════════════════════════
 
-      const TRANSITION_SOUND = "";  // ← replace with your audio file path
-                                    //   e.g.  "sounds/transition.mp3"
+      const TRANSITION_SOUND = ""; // ← replace with your audio file path
+      //   e.g.  "sounds/transition.mp3"
+
+      // ── Firebase config (fill in from Firebase Console) ────────
+      //   firebase.google.com → your project → Project settings → Your apps
+      const firebaseConfig = {
+        apiKey: "AIzaSyB4zuxfFvcZb3d2qQCIt1xROtTbbPyJtqk",
+        authDomain: "mouthwashing-visuals.firebaseapp.com",
+        projectId: "mouthwashing-visuals",
+        storageBucket: "mouthwashing-visuals.firebasestorage.app",
+        messagingSenderId: "903836033913",
+        appId: "1:903836033913:web:44ce661f530a1450cec5a8",
+        measurementId: "G-D2SHZCY3DP",
+      };
 
       const SLIDES = [
         "black.html", // Black screen (start)
-        "1.html",   // Opening info card
-        "2.html",   // 0 days before the crash
-        "3.html",   // Orbital body detected (typewriter)
-        "4.html",   // Extreme warning, collision course (typewriter)
-        "5.html",   // AUTOPILOT DISENGAGED / BRACE FOR IMPACT (flash)
-        "6.html",   // 7 days before the crash
-        "7.html",   // ////// Apologize //////
-        "8.html",   // ////// Talk to Jimmy //////
-        "9.html",   // 2 months after the crash
-        "10.html",  // MESSAGE INCOMING (flash)
-        "11.html",  // Mouthwashing ad video
-        "12.html",  // 3 months after the crash
-        "13.html",  // 4 months after the crash
-        "14.html",  // ////// Break The Foam //////
-        "15.html",  // Take Responsibility — Take Care Of It
-        "16.html",  // 4 days before the crash
-        "17.html",  // Safety
-        "18.html",  // 5 months after the crash
-        "19.html",  // ////// Save him //////
-        "20.html",  // ////// Deal With Swansea //////
-        "21.html",  // 8 hours until judgement
-        "22.html",  // 1 day before the crash
-        "23.html",  // ////// Find The Gun //////
-        "24.html",  // 6 hours until judgement
-        "25.html",  // ////// Get The Gun //////
-        "26.html",  // 0 days before the crash (red)
-        "27.html",  // Kills Ninety Nine Percent — Take Care Of It
-        "28.html",  // Kills Ninety Nine Percent ×3 (fast fade)
-        "29.html",  // System Failure (flash)
-        "30.html",  // ////// Take Care of Swansea //////
-        "31.html",  // ////// Say Sorry //////
-        "32.html",  // ////// Apologize //////
-        "33.html",  // 0 hours before judgement
-        "34.html",  // ////// Go Home //////
+        "1.html",     // Opening info card
+        "black.html",
+        "2.html",     // 0 days before the crash
+        "black.html",
+        "3.html",     // Orbital body detected (typewriter)
+        "black.html",
+        "4.html",     // Extreme warning, collision course (typewriter)
+        "black.html",
+        "5.html",     // AUTOPILOT DISENGAGED / BRACE FOR IMPACT (flash)
+        "black.html",
+        "6.html",     // 7 days before the crash
+        "black.html",
+        "7.html",     // ////// Apologize //////
+        "black.html",
+        "8.html",     // ////// Talk to Jimmy //////
+        "black.html",
+        "9.html",     // 2 months after the crash
+        "black.html",
+        "10.html",    // MESSAGE INCOMING (flash)
+        "11.html",    // Mouthwashing ad video (no black before)
+        "black.html",
+        "35.html",    // 6 days before the crash
+        "black.html",
+        "12.html",    // 3 months after the crash
+        "36.html",    // pony.MOV video (no black before)
+        "black.html",
+        "13.html",    // 4 months after the crash
+        "black.html",
+        "14.html",    // ////// Break The Foam //////
+        "black.html",
+        "15.html",    // Take Responsibility — Take Care Of It
+        "black.html",
+        "16.html",    // 4 days before the crash
+        "black.html",
+        "17.html",    // Safety
+        "black.html",
+        "18.html",    // 5 months after the crash
+        "black.html",
+        "19.html",    // ////// Save him //////
+        "black.html",
+        "20.html",    // ////// Deal With Swansea //////
+        "black.html",
+        "21.html",    // 8 hours until judgement
+        "black.html",
+        "22.html",    // 1 day before the crash
+        "black.html",
+        "23.html",    // ////// Find The Gun //////
+        "black.html",
+        "24.html",    // 6 hours until judgement
+        "black.html",
+        "25.html",    // ////// Get The Gun //////
+        "black.html",
+        "26.html",    // 0 days before the crash (red)
+        "black.html",
+        "27.html",    // Kills Ninety Nine Percent — Take Care Of It
+        "black.html",
+        "28.html",    // Kills Ninety Nine Percent ×3 (fast fade)
+        "black.html",
+        "29.html",    // System Failure (flash)
+        "black.html",
+        "30.html",    // ////// Take Care of Swansea //////
+        "black.html",
+        "31.html",    // ////// Say Sorry //////
+        "black.html",
+        "32.html",    // ////// Apologize //////
+        "black.html",
+        "33.html",    // 0 hours before judgement
+        "black.html",
+        "34.html",    // ////// Go Home //////
         "black.html", // Black screen (end)
       ];
 
       // ═══════════════════════════════════════════════════════════
 
+      // Host mode: open index.html?host to control the presentation.
+      // All other visitors are viewers and cannot advance slides.
+      const isHost = new URLSearchParams(location.search).has("host");
+
+      // Initialise Firebase and get a reference to the shared slide state.
+      firebase.initializeApp(firebaseConfig);
+      const slideRef = firebase.database().ref("currentSlide");
+
       let current = 0;
-      const frame   = document.getElementById("frame");
-      const hud     = document.getElementById("hud");
+      const frame = document.getElementById("frame");
+      const hud = document.getElementById("hud");
       const overlay = document.getElementById("overlay");
 
       // Build audio object once so replay is instant (seek to 0 each time)
@@ -117,11 +184,27 @@
         audio.play().catch(() => {});
       }
 
-      function goTo(index) {
+      // loadSlide: update local state only, no Firebase write.
+      function loadSlide(index) {
         current = Math.max(0, Math.min(SLIDES.length - 1, index));
         frame.src = SLIDES[current];
-        hud.textContent = `${current + 1} / ${SLIDES.length}  —  ${SLIDES[current]}`;
+        const mode = isHost ? "HOST  " : "VIEWER  ";
+        hud.textContent = `${mode}${current + 1} / ${SLIDES.length}  —  ${SLIDES[current]}`;
       }
+
+      // goTo: update local state AND broadcast to Firebase (host only).
+      function goTo(index) {
+        loadSlide(index);
+        if (isHost) slideRef.set(current);
+      }
+
+      // Listen for slide changes pushed from the host via Firebase.
+      // Fires immediately on connect with the current stored value,
+      // so viewers always snap to the right slide when they load.
+      slideRef.on("value", (snap) => {
+        const val = snap.val();
+        if (val !== null && val !== current) loadSlide(val);
+      });
 
       // After each slide loads, play any video inside the iframe.
       // This call is tied to the user gesture (keypress) so the browser
@@ -145,6 +228,7 @@
 
       // ── Key handling ───────────────────────────────────────────
       document.addEventListener("keydown", (e) => {
+        if (!isHost) return; // viewers cannot control slides
         if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
           e.preventDefault();
           playSound();
@@ -164,9 +248,9 @@
         }
       });
 
-      // Start on first slide
-      goTo(0);
+      // Start on first slide locally; Firebase listener will immediately
+      // override to the stored value if one exists.
+      loadSlide(0);
     </script>
-
   </body>
 </html>
