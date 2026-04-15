@@ -25,9 +25,7 @@
         border: none;
         display: block;
       }
-      #presenter-bar {
-        display: none;
-      }
+      #presenter-bar { display: none; }
 
       /* ── Presenter (host) layout ── */
       body.presenter-mode {
@@ -40,22 +38,22 @@
         flex-shrink: 0;
       }
       body.presenter-mode #overlay {
-        bottom: 152px; /* leave preview bar clickable */
+        bottom: 152px;
       }
       body.presenter-mode #presenter-bar {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         height: 152px;
         background: #111;
         border-top: 1px solid #222;
-        padding: 0 12px;
+        padding: 0 16px;
         flex-shrink: 0;
         overflow: hidden;
       }
 
-      /* Preview cards */
+      /* ── Full preview card (content slides) ── */
       .preview-card {
         position: relative;
         width: 192px;
@@ -66,19 +64,11 @@
         cursor: pointer;
         flex-shrink: 0;
         transition: border-color 0.1s;
+        background: #000;
       }
-      .preview-card:hover {
-        border-color: #666;
-      }
-      .preview-card.active {
-        border-color: #fff;
-        box-shadow: 0 0 0 1px #fff;
-      }
-      .preview-card.empty {
-        background: #0a0a0a;
-        cursor: default;
-        border-color: #1a1a1a;
-      }
+      .preview-card:hover       { border-color: #666; }
+      .preview-card.active      { border-color: #fff; box-shadow: 0 0 0 1px #fff; }
+      .preview-card.empty       { background: #0a0a0a; cursor: default; border-color: #1a1a1a; }
       .preview-card iframe {
         width: 1920px;
         height: 1080px;
@@ -92,21 +82,31 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: rgba(0, 0, 0, 0.75);
-        color: rgba(255, 255, 255, 0.7);
+        background: rgba(0, 0, 0, 0.78);
+        color: rgba(255, 255, 255, 0.65);
         font-family: monospace;
         font-size: 9px;
-        padding: 2px 4px;
+        padding: 3px 5px;
         text-align: center;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .preview-card.active .preview-label {
-        color: #fff;
-      }
+      .preview-card.active .preview-label { color: #fff; }
 
-      /* Transparent overlay keeps keyboard focus on the parent page */
+      /* ── Slim black-slide divider ── */
+      .preview-card.black-slide {
+        width: 20px;
+        border-color: #1e1e1e;
+        cursor: pointer;
+        background: #000;
+      }
+      .preview-card.black-slide iframe  { display: none; }
+      .preview-card.black-slide .preview-label { display: none; }
+      .preview-card.black-slide:hover   { border-color: #444; }
+      .preview-card.black-slide.active  { border-color: #fff; box-shadow: 0 0 0 1px #fff; }
+
+      /* Overlay / HUD */
       #overlay {
         position: fixed;
         inset: 0;
@@ -125,14 +125,10 @@
         letter-spacing: 0.08em;
         transition: opacity 0.2s;
       }
-      body.presenter-mode #hud {
-        bottom: 168px; /* sit above the preview bar */
-      }
-
-      /* N key toggles UI visibility */
-      body.ui-hidden #hud    { opacity: 0; }
+      body.presenter-mode #hud { bottom: 168px; }
+      body.ui-hidden #hud      { opacity: 0; }
       body.ui-hidden,
-      body.ui-hidden #overlay { cursor: none; }
+      body.ui-hidden #overlay  { cursor: none; }
     </style>
   </head>
   <body>
@@ -150,11 +146,8 @@
       //  MASTER CONFIGURATION — only edit values in this block
       // ═══════════════════════════════════════════════════════════
 
-      const TRANSITION_SOUND = ""; // ← replace with your audio file path
-      //   e.g.  "sounds/transition.mp3"
+      const TRANSITION_SOUND = "";
 
-      // ── Firebase config (fill in from Firebase Console) ────────
-      //   firebase.google.com → your project → Project settings → Your apps
       const firebaseConfig = {
         apiKey: "AIzaSyB4zuxfFvcZb3d2qQCIt1xROtTbbPyJtqk",
         authDomain: "mouthwashing-visuals.firebaseapp.com",
@@ -240,13 +233,66 @@
         "black.html", // Black screen (end)
       ];
 
+      // Human-readable labels shown in the preview bar (keyed by filename)
+      const SLIDE_LABELS = {
+        "black.html": "",
+        "1.html":  "Opening info card",
+        "2.html":  "0 days before the crash",
+        "3.html":  "Orbital body detected",
+        "4.html":  "Extreme warning — collision course",
+        "5.html":  "AUTOPILOT DISENGAGED / BRACE FOR IMPACT",
+        "6.html":  "7 days before the crash",
+        "7.html":  "////// Apologize //////",
+        "8.html":  "////// Talk to Jimmy //////",
+        "9.html":  "2 months after the crash",
+        "10.html": "MESSAGE INCOMING",
+        "11.html": "Mouthwashing ad (video)",
+        "12.html": "3 months after the crash",
+        "13.html": "4 months after the crash",
+        "14.html": "////// Break The Foam //////",
+        "15.html": "Take Responsibility — Take Care Of It",
+        "16.html": "4 days before the crash",
+        "17.html": "Safety",
+        "18.html": "5 months after the crash",
+        "19.html": "////// Save him //////",
+        "20.html": "////// Deal With Swansea //////",
+        "21.html": "8 hours until judgement",
+        "22.html": "1 day before the crash",
+        "23.html": "////// Find The Gun //////",
+        "24.html": "6 hours until judgement",
+        "25.html": "////// Get The Gun //////",
+        "26.html": "0 days before the crash (red)",
+        "27.html": "Kills 99% — Take Care Of It",
+        "28.html": "Kills 99% ×3 (fast fade)",
+        "29.html": "System Failure",
+        "30.html": "////// Take Care of Swansea //////",
+        "31.html": "////// Say Sorry //////",
+        "32.html": "////// Apologize //////",
+        "33.html": "0 hours before judgement",
+        "34.html": "////// Go Home //////",
+        "35.html": "6 days before the crash",
+        "36.html": "Pony (video)",
+      };
+
+      // CSS injected into every preview iframe to:
+      //   1. hide the VHS scanline / vignette overlays
+      //   2. fast-forward all animations to their finished state
+      //   3. hide videos (handled separately via JS below)
+      const PREVIEW_INJECT_CSS = `
+        body::before, body::after { display: none !important; }
+        * {
+          animation-duration:        0.001ms !important;
+          animation-delay:           0ms     !important;
+          animation-iteration-count: 1       !important;
+          transition-duration:       0.001ms !important;
+          transition-delay:          0ms     !important;
+        }
+      `;
+
       // ═══════════════════════════════════════════════════════════
 
-      // Host mode: open index.html?host to control the presentation.
-      // All other visitors are viewers and cannot advance slides.
       const isHost = new URLSearchParams(location.search).has("host");
 
-      // Initialise Firebase and get a reference to the shared slide state.
       firebase.initializeApp(firebaseConfig);
       const slideRef = firebase.database().ref("currentSlide");
 
@@ -255,10 +301,8 @@
       const hud     = document.getElementById("hud");
       const overlay = document.getElementById("overlay");
 
-      // Apply presenter layout for the host
       if (isHost) document.body.classList.add("presenter-mode");
 
-      // Build audio object once so replay is instant (seek to 0 each time)
       let audio = null;
       if (TRANSITION_SOUND) {
         audio = new Audio(TRANSITION_SOUND);
@@ -272,55 +316,83 @@
       }
 
       // ── Presenter preview bar ──────────────────────────────────
-      const PREVIEW_SLOTS = 5;   // total cards shown (2 before + current + 2 after)
-      const PREVIEW_OFFSET = 2;  // index of the "current" card in the row
+      const PREVIEW_SLOTS  = 7;
+      const PREVIEW_OFFSET = 3; // current card is at position 3 (0-indexed)
 
-      let previewSlots = []; // { card, iframe, label }
+      let previewSlots = [];
+
+      function injectPreviewStyles(iframe) {
+        try {
+          const doc = iframe.contentDocument;
+          if (!doc || !doc.head) return;
+
+          // Freeze / fast-forward animations and hide VHS overlays
+          const style = doc.createElement("style");
+          style.textContent = PREVIEW_INJECT_CSS;
+          doc.head.appendChild(style);
+
+          // Mute and freeze any video so it shows a static first frame
+          const video = doc.querySelector("video");
+          if (video) {
+            video.muted        = true;
+            video.autoplay     = false;
+            video.currentTime  = 0;
+            video.pause();
+          }
+        } catch (e) {}
+      }
 
       function initPreviewBar() {
         if (!isHost) return;
         const bar = document.getElementById("presenter-bar");
+
         for (let i = 0; i < PREVIEW_SLOTS; i++) {
-          const card  = document.createElement("div");
-          const pIframe = document.createElement("iframe");
-          const label = document.createElement("div");
+          const card   = document.createElement("div");
+          const label  = document.createElement("div");
+          const pFrame = document.createElement("iframe");
 
           card.className  = "preview-card";
           label.className = "preview-label";
-          pIframe.allow   = "autoplay";
+          pFrame.allow    = "autoplay";
 
-          card.appendChild(pIframe);
+          card.appendChild(pFrame);
           card.appendChild(label);
           bar.appendChild(card);
 
-          previewSlots.push({ card, iframe: pIframe, label });
+          pFrame.addEventListener("load", () => injectPreviewStyles(pFrame));
 
-          // Capture slot offset at creation time so click always works
           const slotOffset = i - PREVIEW_OFFSET;
           card.addEventListener("click", () => {
             const target = current + slotOffset;
             if (target >= 0 && target < SLIDES.length) goTo(target);
           });
+
+          previewSlots.push({ card, iframe: pFrame, label });
         }
       }
 
       function updatePreviewBar() {
         if (!isHost) return;
         previewSlots.forEach((slot, i) => {
-          const slotOffset  = i - PREVIEW_OFFSET;
-          const slideIndex  = current + slotOffset;
-          const inRange     = slideIndex >= 0 && slideIndex < SLIDES.length;
+          const slotOffset = i - PREVIEW_OFFSET;
+          const idx        = current + slotOffset;
+          const inRange    = idx >= 0 && idx < SLIDES.length;
+          const file       = inRange ? SLIDES[idx] : null;
+          const isBlack    = file === "black.html";
 
-          slot.card.classList.toggle("active", slotOffset === 0);
-          slot.card.classList.toggle("empty",  !inRange);
+          slot.card.classList.toggle("active",      slotOffset === 0);
+          slot.card.classList.toggle("empty",       !inRange);
+          slot.card.classList.toggle("black-slide", isBlack);
 
-          if (inRange) {
-            const newSrc = SLIDES[slideIndex];
-            // Only update src when the slide actually changes to avoid reloads
-            if (!slot.iframe.src.endsWith(newSrc)) slot.iframe.src = newSrc;
-            slot.label.textContent = `${slideIndex + 1}  ${newSrc}`;
+          if (inRange && !isBlack) {
+            const newSrc = file;
+            // Only update src when the slide actually changes to avoid unnecessary reloads
+            if (!slot.iframe.src.endsWith("/" + newSrc) && !slot.iframe.src.endsWith(newSrc)) {
+              slot.iframe.src = newSrc;
+            }
+            slot.label.textContent = `${idx + 1}  ${SLIDE_LABELS[newSrc] ?? newSrc}`;
           } else {
-            slot.iframe.src = "about:blank";
+            if (!isBlack) slot.iframe.src = "about:blank";
             slot.label.textContent = "";
           }
         });
@@ -328,7 +400,6 @@
 
       // ── Core slide functions ───────────────────────────────────
 
-      // loadSlide: update local state only, no Firebase write.
       function loadSlide(index) {
         current = Math.max(0, Math.min(SLIDES.length - 1, index));
         frame.src = SLIDES[current];
@@ -337,21 +408,16 @@
         updatePreviewBar();
       }
 
-      // goTo: update local state AND broadcast to Firebase (host only).
       function goTo(index) {
         loadSlide(index);
         if (isHost) slideRef.set(current);
       }
 
-      // Listen for slide changes pushed from the host via Firebase.
-      // Fires immediately on connect with the current stored value,
-      // so viewers always snap to the right slide when they load.
       slideRef.on("value", (snap) => {
         const val = snap.val();
         if (val !== null && val !== current) loadSlide(val);
       });
 
-      // After each slide loads, play any video inside the iframe.
       frame.addEventListener("load", () => {
         try {
           const video = frame.contentDocument.querySelector("video");
@@ -361,9 +427,7 @@
 
       // ── Focus lock ─────────────────────────────────────────────
       overlay.addEventListener("click", () => window.focus());
-      window.addEventListener("blur", () => {
-        setTimeout(() => window.focus(), 0);
-      });
+      window.addEventListener("blur",  () => setTimeout(() => window.focus(), 0));
 
       // ── Key handling ───────────────────────────────────────────
       document.addEventListener("keydown", (e) => {
@@ -394,8 +458,6 @@
         }
       });
 
-      // Start on first slide locally; Firebase listener will immediately
-      // override to the stored value if one exists.
       initPreviewBar();
       loadSlide(0);
     </script>
