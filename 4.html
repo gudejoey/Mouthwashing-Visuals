@@ -36,20 +36,28 @@
         clip-path: inset(0 100% 0 0);
       }
       .line:nth-child(1) {
-        animation: reveal 0.8s steps(17, end) forwards;
+        animation: reveal 0.8s steps(16, end) forwards;
         animation-delay: 0.5s;
       }
       .line:nth-child(2) {
-        animation: reveal 2s steps(52, end) forwards;
+        animation: reveal 2s steps(54, end) forwards;
         animation-delay: 2s;
       }
       .line:nth-child(3) {
-        animation: reveal 2.8s steps(76, end) forwards;
+        animation: reveal 1.4s steps(40, end) forwards;
         animation-delay: 4.5s;
       }
       .line:nth-child(4) {
-        animation: reveal 2.5s steps(68, end) forwards;
-        animation-delay: 8s;
+        animation: reveal 1.5s steps(43, end) forwards;
+        animation-delay: 6.2s;
+      }
+      .line:nth-child(5) {
+        animation: reveal 1.4s steps(41, end) forwards;
+        animation-delay: 8.3s;
+      }
+      .line:nth-child(6) {
+        animation: reveal 1.2s steps(34, end) forwards;
+        animation-delay: 10s;
       }
 
       @keyframes reveal {
@@ -99,7 +107,9 @@
   <body>
     <div class="line">Extreme Warning!</div>
     <div class="line">Direct collision course with orbital body 1.9 AU away.</div>
-    <div class="line">Engaging auto-pilot to recorrect vessel. Advise crew to take up emergency positions.</div>
-    <div class="line">4000 Credits docked from crew pay package for failure of navigational staff.</div>
+    <div class="line">Engaging auto-pilot to recorrect vessel.</div>
+    <div class="line">Advise crew to take up emergency positions.</div>
+    <div class="line">4000 Credits docked from crew pay package</div>
+    <div class="line">for failure of navigational staff.</div>
   </body>
 </html>
