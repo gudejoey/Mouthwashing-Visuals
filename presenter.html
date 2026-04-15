@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presenter</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        overflow: hidden;
+      }
+      #frame {
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        display: block;
+      }
+      /* Transparent overlay sits on top of the iframe so the parent
+         page keeps keyboard focus no matter where the user clicks. */
+      #overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: transparent;
+      }
+      #hud {
+        position: fixed;
+        bottom: 16px;
+        right: 20px;
+        z-index: 9999;
+        pointer-events: none;
+        font-family: monospace;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+        letter-spacing: 0.08em;
+        transition: opacity 0.2s;
+      }
+      /* hidden state toggled by N key */
+      body.ui-hidden #hud    { opacity: 0; }
+      body.ui-hidden,
+      body.ui-hidden #overlay { cursor: none; }
+    </style>
+  </head>
+  <body>
+
+    <iframe id="frame" allow="autoplay; fullscreen"></iframe>
+    <div id="overlay"></div>
+    <div id="hud"></div>
+
+    <script>
+      // ═══════════════════════════════════════════════════════════
+      //  MASTER CONFIGURATION — only edit values in this block
+      // ═══════════════════════════════════════════════════════════
+
+      const TRANSITION_SOUND = "";  // ← replace with your audio file path
+                                    //   e.g.  "sounds/transition.mp3"
+
+      const SLIDES = [
+        "black.html", // Black screen (start)
+        "1.html",   // Opening info card
+        "2.html",   // 0 days before the crash
+        "3.html",   // Orbital body detected (typewriter)
+        "4.html",   // Extreme warning, collision course (typewriter)
+        "5.html",   // AUTOPILOT DISENGAGED / BRACE FOR IMPACT (flash)
+        "6.html",   // 7 days before the crash
+        "7.html",   // ////// Apologize //////
+        "8.html",   // ////// Talk to Jimmy //////
+        "9.html",   // 2 months after the crash
+        "10.html",  // MESSAGE INCOMING (flash)
+        "11.html",  // Mouthwashing ad video
+        "12.html",  // 3 months after the crash
+        "13.html",  // 4 months after the crash
+        "14.html",  // ////// Break The Foam //////
+        "15.html",  // Take Responsibility — Take Care Of It
+        "16.html",  // 4 days before the crash
+        "17.html",  // Safety
+        "18.html",  // 5 months after the crash
+        "19.html",  // ////// Save him //////
+        "20.html",  // ////// Deal With Swansea //////
+        "21.html",  // 8 hours until judgement
+        "22.html",  // 1 day before the crash
+        "23.html",  // ////// Find The Gun //////
+        "24.html",  // 6 hours until judgement
+        "25.html",  // ////// Get The Gun //////
+        "26.html",  // 0 days before the crash (red)
+        "27.html",  // Kills Ninety Nine Percent — Take Care Of It
+        "28.html",  // Kills Ninety Nine Percent ×3 (fast fade)
+        "29.html",  // System Failure (flash)
+        "30.html",  // ////// Take Care of Swansea //////
+        "31.html",  // ////// Say Sorry //////
+        "32.html",  // ////// Apologize //////
+        "33.html",  // 0 hours before judgement
+        "34.html",  // ////// Go Home //////
+        "black.html", // Black screen (end)
+      ];
+
+      // ═══════════════════════════════════════════════════════════
+
+      let current = 0;
+      const frame   = document.getElementById("frame");
+      const hud     = document.getElementById("hud");
+      const overlay = document.getElementById("overlay");
+
+      // Build audio object once so replay is instant (seek to 0 each time)
+      let audio = null;
+      if (TRANSITION_SOUND) {
+        audio = new Audio(TRANSITION_SOUND);
+        audio.preload = "auto";
+      }
+
+      function playSound() {
+        if (!audio) return;
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+
+      function goTo(index) {
+        current = Math.max(0, Math.min(SLIDES.length - 1, index));
+        frame.src = SLIDES[current];
+        hud.textContent = `${current + 1} / ${SLIDES.length}  —  ${SLIDES[current]}`;
+      }
+
+      // After each slide loads, play any video inside the iframe.
+      // This call is tied to the user gesture (keypress) so the browser
+      // allows audio even without the muted attribute.
+      frame.addEventListener("load", () => {
+        try {
+          const video = frame.contentDocument.querySelector("video");
+          if (video) video.play().catch(() => {});
+        } catch (e) {}
+      });
+
+      // ── Focus lock ─────────────────────────────────────────────
+      // The overlay intercepts all clicks so focus never moves to
+      // the iframe. If focus is lost anyway (e.g. alt-tab back),
+      // clicking anywhere on the overlay reclaims it.
+      overlay.addEventListener("click", () => window.focus());
+      window.addEventListener("blur", () => {
+        // Small delay so the browser finishes its own focus handling first
+        setTimeout(() => window.focus(), 0);
+      });
+
+      // ── Key handling ───────────────────────────────────────────
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
+          e.preventDefault();
+          playSound();
+          goTo(current + 1);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          playSound();
+          goTo(current - 1);
+        } else if (e.key === "n" || e.key === "N") {
+          document.body.classList.toggle("ui-hidden");
+        }
+      });
+
+      // Start on first slide
+      goTo(0);
+    </script>
+
+  </body>
+</html>

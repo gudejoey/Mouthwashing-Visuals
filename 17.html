@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=WDXL+Lubrifont+TC&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="master.css" />
+    <style>
+      body {
+        background-color: rgb(0, 0, 0);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      * {
+        font-family: "WDXL Lubrifont TC", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        margin: 0;
+      }
+      .word {
+        color: var(--color-warning);
+        font-size: 36pt;
+        text-transform: uppercase;
+        text-align: center;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
+        animation-delay: 0.3s;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      /* ═══ VHS OVERLAY ═══ */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 2px,
+          rgba(0, 0, 0, 0.15) 4px
+        );
+        animation: vhsFlicker 0.15s infinite;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -10px;
+        z-index: 998;
+        pointer-events: none;
+        box-shadow:
+          inset 4px 0 12px rgba(255, 0, 0, 0.06),
+          inset -4px 0 12px rgba(0, 100, 255, 0.06);
+        background: radial-gradient(
+          ellipse at center,
+          transparent 60%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
+      }
+      @keyframes vhsFlicker {
+        0%   { opacity: 0.97; }
+        50%  { opacity: 1; }
+        100% { opacity: 0.98; }
+      }
+    </style>
+    <title>Document</title>
+  </head>
+  <body>
+    <p class="word">Safety</p>
+  </body>
+</html>

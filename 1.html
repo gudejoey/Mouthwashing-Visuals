@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=WDXL+Lubrifont+TC&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="master.css" />
+    <style>
+      body {
+        background-color: rgb(0, 0, 0);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      * {
+        font-family: "WDXL Lubrifont TC", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        margin: 0;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 14px 28px;
+        align-items: baseline;
+      }
+
+      .row { display: contents; }
+
+      .row .label,
+      .row .value { opacity: 0; }
+
+      /*
+        Timeline (all times in real seconds):
+          Row 1: fade in 0–4s,   visible 4–11s,   fade out 11–13s
+          Row 2: fade in 1.5–5.5s, visible 5.5–11s, fade out 11–13s
+          Row 3: fade in 3–7s,   visible 7–11s,   fade out 11–13s
+          Row 4: fade in 4.5–8.5s, visible 8.5–11s, fade out 11–13s
+          Final: fade in 6–10s,  stays forever
+
+        All use duration 13s, no delay. Stagger baked into keyframes.
+      */
+
+      .row:nth-child(1) .label,
+      .row:nth-child(1) .value {
+        animation: row1 13s ease forwards;
+      }
+      .row:nth-child(2) .label,
+      .row:nth-child(2) .value {
+        animation: row2 13s ease forwards;
+      }
+      .row:nth-child(3) .label,
+      .row:nth-child(3) .value {
+        animation: row3 13s ease forwards;
+      }
+      .row:nth-child(4) .label,
+      .row:nth-child(4) .value {
+        animation: row4 13s ease forwards;
+      }
+
+      /* Row 1: in at 0%, visible by 30.8%, hold to 84.6%, out by 100% */
+      @keyframes row1 {
+        0%      { opacity: 0; }
+        30.8%   { opacity: 1; }
+        70%   { opacity: 1; }
+        95%    { opacity: 0; }
+      }
+      /* Row 2: hidden to 11.5%, in by 42.3%, hold to 84.6%, out by 100% */
+      @keyframes row2 {
+        0%      { opacity: 0; }
+        11.5%   { opacity: 0; }
+        42.3%   { opacity: 1; }
+        70%   { opacity: 1; }
+        95%    { opacity: 0; }
+      }
+      /* Row 3: hidden to 23.1%, in by 53.8%, hold to 84.6%, out by 100% */
+      @keyframes row3 {
+        0%      { opacity: 0; }
+        23.1%   { opacity: 0; }
+        53.8%   { opacity: 1; }
+        70%   { opacity: 1; }
+        95%    { opacity: 0; }
+      }
+      /* Row 4: hidden to 34.6%, in by 65.4%, hold to 84.6%, out by 100% */
+      @keyframes row4 {
+        0%      { opacity: 0; }
+        34.6%   { opacity: 0; }
+        65.4%   { opacity: 1; }
+        70%   { opacity: 1; }
+        95%    { opacity: 0; }
+      }
+
+      .label {
+        font-size: 36pt;
+        color: var(--color-label);
+        text-align: right;
+        text-transform: uppercase;
+      }
+      .value {
+        font-size: 36pt;
+        color: var(--color-value);
+        text-align: left;
+        text-transform: uppercase;
+      }
+
+      /* "I hope this hurts" — fades in and stays */
+      .final {
+        font-size: 36pt;
+        color: var(--color-warning);
+        text-align: center;
+        text-transform: uppercase;
+        margin-top: 48px;
+        opacity: 0;
+        animation: fadeIn 6s ease forwards;
+        animation-delay: 6s;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+
+      /* ═══ VHS OVERLAY ═══ */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.15) 2px,
+          rgba(0, 0, 0, 0.15) 4px
+        );
+        animation: vhsFlicker 0.15s infinite;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -10px;
+        z-index: 998;
+        pointer-events: none;
+        box-shadow:
+          inset 4px 0 12px rgba(255, 0, 0, 0.06),
+          inset -4px 0 12px rgba(0, 100, 255, 0.06);
+        background: radial-gradient(
+          ellipse at center,
+          transparent 60%,
+          rgba(0, 0, 0, 0.4) 100%
+        );
+      }
+      @keyframes vhsFlicker {
+        0%   { opacity: 0.97; }
+        50%  { opacity: 1; }
+        100% { opacity: 0.98; }
+      }
+    </style>
+    <title>Document</title>
+  </head>
+  <body>
+
+    <div class="info-grid">
+      <div class="row">
+        <span class="label">Pony Express Long-Haul<br>Space Freighter</span>
+        <span class="value">Tulpar</span>
+      </div>
+      <div class="row">
+        <span class="label">Crew</span>
+        <span class="value">5</span>
+      </div>
+      <div class="row">
+        <span class="label">Planned Shipment Duration</span>
+        <span class="value">382 Days</span>
+      </div>
+      <div class="row">
+        <span class="label">Elapsed Transit Time</span>
+        <span class="value">147 Days</span>
+      </div>
+    </div>
+
+    <p class="final">I hope this hurts</p>
+
+  </body>
+</html>
