@@ -43,6 +43,10 @@
         animation: reveal 2.5s steps(75, end) forwards;
         animation-delay: 3.5s;
       }
+      .line:nth-child(3) {
+        animation: reveal 2.5s steps(75, end) forwards;
+        animation-delay: 6s;
+      }
 
       @keyframes reveal {
         from { clip-path: inset(0 100% 0 0); }
@@ -90,6 +94,7 @@
   </head>
   <body>
     <div class="line">An orbital body has been detected 21 AU ahead of the vessel.</div>
-    <div class="line">Please make a manual correction 1.4° leftwards to avoid impact with unknown mass.</div>
+    <div class="line">Please make a manual correction 1.4° leftwards</div>
+    <div class="line">to avoid impact with unknown mass.</div>
   </body>
 </html>
