@@ -458,6 +458,18 @@
 
       initPreviewBar();
       loadSlide(0);
+
+      // ── Screen Wake Lock — keeps display on while tab is active ──
+      if ("wakeLock" in navigator) {
+        let wakeLock = null;
+        const requestWakeLock = async () => {
+          try { wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
+        };
+        requestWakeLock();
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") requestWakeLock();
+        });
+      }
     </script>
   </body>
 </html>
