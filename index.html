@@ -132,6 +132,7 @@
 
       const TRANSITION_SOUND = "";
 
+      // Firebase client keys are public by design — security is handled by Firebase Rules.
       const firebaseConfig = {
         apiKey: "AIzaSyB4zuxfFvcZb3d2qQCIt1xROtTbbPyJtqk",
         authDomain: "mouthwashing-visuals.firebaseapp.com",
@@ -279,7 +280,8 @@
 
       // ═══════════════════════════════════════════════════════════
 
-      const isHost = new URLSearchParams(location.search).has("host");
+      let isHost = new URLSearchParams(location.search).has("host");
+      let presenterBarInited = false;
 
       firebase.initializeApp(firebaseConfig);
       const slideRef = firebase.database().ref("currentSlide");
@@ -289,6 +291,18 @@
       const hud     = document.getElementById("hud");
       const overlay = document.getElementById("overlay");
       const track   = document.getElementById("preview-track");
+
+      function applyMode() {
+        document.body.classList.toggle("presenter-mode", isHost);
+        if (isHost && !presenterBarInited) {
+          initPreviewBar();
+          presenterBarInited = true;
+        }
+        if (isHost) updateTrackPosition();
+        // Refresh HUD label and preview active state
+        loadSlide(current);
+        if (isHost) slideRef.set(current);
+      }
 
       if (isHost) document.body.classList.add("presenter-mode");
 
@@ -416,6 +430,7 @@
       // ── Key handling ───────────────────────────────────────────
       document.addEventListener("keydown", (e) => {
         if (e.key === "n" || e.key === "N") { document.body.classList.toggle("ui-hidden"); return; }
+        if (e.key === "t" || e.key === "T") { isHost = !isHost; applyMode(); return; }
         if (e.key === "f" || e.key === "F") {
           (!document.fullscreenElement
             ? document.documentElement.requestFullscreen()

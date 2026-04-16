@@ -29,23 +29,31 @@
       }
       .line {
         color: var(--color-content);
-        font-size: 36pt;
+        font-size: 64pt;
         text-transform: uppercase;
         text-align: center;
-        margin: 12px 0;
+        margin: 10px 0;
         clip-path: inset(0 100% 0 0);
       }
       .line:nth-child(1) {
-        animation: reveal 2s steps(55, end) forwards;
+        animation: reveal 1.65s steps(34, end) forwards;
         animation-delay: 0.5s;
       }
       .line:nth-child(2) {
-        animation: reveal 2.5s steps(75, end) forwards;
-        animation-delay: 3.5s;
+        animation: reveal 1.3s steps(27, end) forwards;
+        animation-delay: 2.5s;
       }
       .line:nth-child(3) {
-        animation: reveal 2.5s steps(75, end) forwards;
-        animation-delay: 6s;
+        animation: reveal 1.55s steps(32, end) forwards;
+        animation-delay: 4.5s;
+      }
+      .line:nth-child(4) {
+        animation: reveal 0.7s steps(15, end) forwards;
+        animation-delay: 6.4s;
+      }
+      .line:nth-child(5) {
+        animation: reveal 1.7s steps(35, end) forwards;
+        animation-delay: 8.1s;
       }
 
       @keyframes reveal {
@@ -93,8 +101,10 @@
     <title>Document</title>
   </head>
   <body>
-    <div class="line">An orbital body has been detected 21 AU ahead of the vessel.</div>
-    <div class="line">Please make a manual correction 1.4° leftwards</div>
+    <div class="line">An orbital body has been detected</div>
+    <div class="line">21 AU ahead of the vessel.</div>
+    <div class="line">Please make a manual correction</div>
+    <div class="line">1.4° leftwards</div>
     <div class="line">to avoid impact with unknown mass.</div>
   </body>
 </html>
