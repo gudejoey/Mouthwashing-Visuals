@@ -53,51 +53,51 @@
 
       .row:nth-child(1) .label,
       .row:nth-child(1) .value {
-        animation: row1 24s ease forwards;
+        animation: row1 50s ease forwards;
       }
       .row:nth-child(2) .label,
       .row:nth-child(2) .value {
-        animation: row2 24s ease forwards;
+        animation: row2 50s ease forwards;
       }
       .row:nth-child(3) .label,
       .row:nth-child(3) .value {
-        animation: row3 24s ease forwards;
+        animation: row3 50s ease forwards;
       }
       .row:nth-child(4) .label,
       .row:nth-child(4) .value {
-        animation: row4 24s ease forwards;
+        animation: row4 50s ease forwards;
       }
 
-      /* Row 1: in at 0s, visible by 3s (15%), hold to 13s (65%), out by 16s (80%) */
+      /* Row 1: fade in 0–5s (0–10%), hold to 37.5s (75%), fade out by 47.5s (95%) */
       @keyframes row1 {
         0%   { opacity: 0; }
-        15%  { opacity: 1; }
-        65%  { opacity: 1; }
-        80%  { opacity: 0; }
+        10%  { opacity: 1; }
+        75%  { opacity: 1; }
+        95%  { opacity: 0; }
       }
-      /* Row 2: hidden to 3s (15%), in by 6s (30%), hold to 13s, out by 16s */
+      /* Row 2: hidden to 5s, fade in 5–10s (10–20%), hold to 75%, fade out by 95% */
       @keyframes row2 {
         0%   { opacity: 0; }
-        15%  { opacity: 0; }
-        30%  { opacity: 1; }
-        65%  { opacity: 1; }
-        80%  { opacity: 0; }
+        10%  { opacity: 0; }
+        20%  { opacity: 1; }
+        75%  { opacity: 1; }
+        95%  { opacity: 0; }
       }
-      /* Row 3: hidden to 6s (30%), in by 9s (45%), hold to 13s, out by 16s */
+      /* Row 3: hidden to 10s, fade in 10–15s (20–30%), hold to 75%, fade out by 95% */
       @keyframes row3 {
         0%   { opacity: 0; }
-        30%  { opacity: 0; }
-        45%  { opacity: 1; }
-        65%  { opacity: 1; }
-        80%  { opacity: 0; }
+        20%  { opacity: 0; }
+        30%  { opacity: 1; }
+        75%  { opacity: 1; }
+        95%  { opacity: 0; }
       }
-      /* Row 4: hidden to 9s (45%), in by 12s (60%), hold to 13s, out by 16s */
+      /* Row 4: hidden to 15s, fade in 15–20s (30–40%), hold to 75%, fade out by 95% */
       @keyframes row4 {
         0%   { opacity: 0; }
-        45%  { opacity: 0; }
-        60%  { opacity: 1; }
-        65%  { opacity: 1; }
-        80%  { opacity: 0; }
+        30%  { opacity: 0; }
+        40%  { opacity: 1; }
+        75%  { opacity: 1; }
+        95%  { opacity: 0; }
       }
 
       .label {
@@ -121,8 +121,8 @@
         text-transform: uppercase;
         margin-top: 48px;
         opacity: 0;
-        animation: fadeIn 6s ease forwards;
-        animation-delay: 13s;
+        animation: fadeIn 10s ease forwards;
+        animation-delay: 22s;
       }
 
       @keyframes fadeIn {
