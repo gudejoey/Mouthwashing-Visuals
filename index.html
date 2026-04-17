@@ -327,19 +327,24 @@
       let frame = activeFrame;
 
       function swapFrames() {
-        // Pause any video in the outgoing frame so audio doesn't overlap
+        // Mute and pause outgoing frame's video
         try {
           const vid = activeFrame.contentDocument?.querySelector("video");
-          if (vid) { vid.pause(); vid.currentTime = 0; }
+          if (vid) { vid.pause(); vid.currentTime = 0; vid.muted = true; }
         } catch (e) {}
         activeFrame.classList.remove("active");
         inactiveFrame.classList.add("active");
         [activeFrame, inactiveFrame] = [inactiveFrame, activeFrame];
         frame = activeFrame;
+        // Unmute and play the now-active frame's video
+        try {
+          const vid = activeFrame.contentDocument?.querySelector("video");
+          if (vid) { vid.muted = false; vid.currentTime = 0; vid.play().catch(() => {}); }
+        } catch (e) {}
       }
 
       function preloadNext(fromIndex) {
-        // Preload the next non-black slide into the inactive frame
+        // Preload the next non-black slide into the inactive frame (muted)
         for (let i = fromIndex + 1; i < SLIDES.length; i++) {
           if (SLIDES[i] !== "black.html") {
             if (SLIDES[i] !== inactiveSrc) {
@@ -351,12 +356,14 @@
         }
       }
 
-      // Autoplay video on load for both frames
+      // On load: play muted if inactive (buffering), unmuted if active (showing)
       function attachAutoplay(iframe) {
         iframe.addEventListener("load", () => {
           try {
             const vid = iframe.contentDocument.querySelector("video");
-            if (vid) vid.play().catch(() => {});
+            if (!vid) return;
+            vid.muted = !iframe.classList.contains("active");
+            vid.play().catch(() => {});
           } catch (e) {}
         });
       }
