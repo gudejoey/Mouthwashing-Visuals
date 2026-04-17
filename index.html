@@ -343,15 +343,16 @@
         } catch (e) {}
       }
 
-      function preloadNext(fromIndex) {
-        // Preload the next non-black slide into the inactive frame (muted)
-        for (let i = fromIndex + 1; i < SLIDES.length; i++) {
-          if (SLIDES[i] !== "black.html") {
-            if (SLIDES[i] !== inactiveSrc) {
-              inactiveFrame.src = SLIDES[i];
-              inactiveSrc = SLIDES[i];
-            }
-            break;
+      // Only video slides get pre-buffered — in order, one at a time
+      const VIDEO_PRELOAD = ["11.html", "36.html"];
+      let videoPreloadIdx = 0;
+
+      function preloadNextVideo() {
+        if (videoPreloadIdx < VIDEO_PRELOAD.length) {
+          const src = VIDEO_PRELOAD[videoPreloadIdx++];
+          if (src !== inactiveSrc) {
+            inactiveFrame.src = src;
+            inactiveSrc = src;
           }
         }
       }
@@ -480,15 +481,14 @@
         const src = SLIDES[current];
 
         if (inactiveSrc === src) {
-          // Already preloaded in background — instant swap, no reload
+          // Video was pre-buffered — instant swap, no reload
           swapFrames();
+          // Queue up the next video to buffer in the background
+          preloadNextVideo();
         } else {
-          // Not preloaded — load directly into active frame
+          // Normal slide — load directly into active frame
           activeFrame.src = src;
         }
-
-        // Preload next slide into background frame
-        preloadNext(current);
 
         const mode = isHost ? "HOST  " : "VIEWER  ";
         hud.textContent = `${mode}${current + 1} / ${SLIDES.length}  —  ${src}`;
@@ -531,6 +531,7 @@
 
       initPreviewBar();
       loadSlide(0);
+      preloadNextVideo(); // Start buffering 11.html (Ad.mp4) immediately, muted
 
       // ── Eager-fetch videos into browser cache ────────────────────
       ["Ad.mp4", "pony.mp4"].forEach(v =>
