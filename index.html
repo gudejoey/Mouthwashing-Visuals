@@ -302,10 +302,12 @@
       const overlay = document.getElementById("overlay");
       const track   = document.getElementById("preview-track");
 
+      let isMuted = true; // default: muted (background-tab safe)
+
       frame.addEventListener("load", () => {
         try {
           const vid = frame.contentDocument.querySelector("video");
-          if (vid) vid.play().catch(() => {});
+          if (vid) { vid.muted = isMuted; vid.play().catch(() => {}); }
         } catch (e) {}
       });
 
@@ -441,9 +443,10 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "n" || e.key === "N") { document.body.classList.toggle("ui-hidden"); return; }
         if (e.key === "m" || e.key === "M") {
+          isMuted = !isMuted;
           try {
             const vid = frame.contentDocument.querySelector("video");
-            if (vid) vid.muted = !vid.muted;
+            if (vid) vid.muted = isMuted;
           } catch (e) {}
           return;
         }
