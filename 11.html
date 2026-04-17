@@ -21,8 +21,14 @@
   </head>
   <body>
     <!-- Replace "YOUR_VIDEO.mp4" with the path to your video file -->
-    <video autoplay playsinline preload="auto">
+    <video autoplay playsinline muted preload="auto">
       <source src="Ad.mp4" type="video/mp4">
     </video>
+    <script>
+      const v = document.querySelector("video");
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) v.play().catch(() => {});
+      });
+    </script>
   </body>
 </html>

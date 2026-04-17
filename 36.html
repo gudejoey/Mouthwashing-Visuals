@@ -20,8 +20,14 @@
     <title>Document</title>
   </head>
   <body>
-    <video autoplay playsinline preload="auto">
+    <video autoplay playsinline muted preload="auto">
       <source src="pony.mp4" type="video/mp4">
     </video>
+    <script>
+      const v = document.querySelector("video");
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) v.play().catch(() => {});
+      });
+    </script>
   </body>
 </html>

@@ -14,24 +14,12 @@
       }
 
       /* ── Viewer layout ── */
-      #frame-wrap { width: 100vw; height: 100vh; position: relative; }
-      #frame-a, #frame-b {
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 100%;
-        border: none;
-        opacity: 0;
-        pointer-events: none;
-        /* opacity:0 not display:none — hidden iframes don't buffer video */
-      }
-      #frame-a.active, #frame-b.active {
-        opacity: 1;
-        pointer-events: auto;
-      }
+      #frame { width: 100vw; height: 100vh; border: none; display: block; }
       #presenter-bar { display: none; }
 
       /* ── Host / presenter layout ── */
       body.presenter-mode { display: flex; flex-direction: column; }
-      body.presenter-mode #frame-wrap {
+      body.presenter-mode #frame {
         width: 100%;
         height: calc(100vh - 152px);
         flex-shrink: 0;
@@ -126,10 +114,7 @@
     </style>
   </head>
   <body>
-    <div id="frame-wrap">
-      <iframe id="frame-a" class="active" allow="autoplay; fullscreen"></iframe>
-      <iframe id="frame-b" allow="autoplay; fullscreen"></iframe>
-    </div>
+    <iframe id="frame" allow="autoplay; fullscreen"></iframe>
     <div id="overlay"></div>
     <div id="hud"></div>
     <div id="presenter-bar">
@@ -312,64 +297,17 @@
       const slideRef = firebase.database().ref("currentSlide");
 
       let current = 0;
+      const frame   = document.getElementById("frame");
       const hud     = document.getElementById("hud");
       const overlay = document.getElementById("overlay");
       const track   = document.getElementById("preview-track");
 
-      // ── Double-buffer frames for instant slide switching ──────────
-      const frameA = document.getElementById("frame-a");
-      const frameB = document.getElementById("frame-b");
-      let activeFrame   = frameA;
-      let inactiveFrame = frameB;
-      let inactiveSrc   = "";   // what src is currently preloaded in inactive frame
-
-      // Always reference the currently visible frame as `frame` for compat
-      let frame = activeFrame;
-
-      function swapFrames() {
-        // Mute and pause outgoing frame's video
+      frame.addEventListener("load", () => {
         try {
-          const vid = activeFrame.contentDocument?.querySelector("video");
-          if (vid) { vid.pause(); vid.currentTime = 0; vid.muted = true; }
+          const vid = frame.contentDocument.querySelector("video");
+          if (vid) vid.play().catch(() => {});
         } catch (e) {}
-        activeFrame.classList.remove("active");
-        inactiveFrame.classList.add("active");
-        [activeFrame, inactiveFrame] = [inactiveFrame, activeFrame];
-        frame = activeFrame;
-        // Unmute and play the now-active frame's video
-        try {
-          const vid = activeFrame.contentDocument?.querySelector("video");
-          if (vid) { vid.muted = false; vid.currentTime = 0; vid.play().catch(() => {}); }
-        } catch (e) {}
-      }
-
-      // Only video slides get pre-buffered — in order, one at a time
-      const VIDEO_PRELOAD = ["11.html", "36.html"];
-      let videoPreloadIdx = 0;
-
-      function preloadNextVideo() {
-        if (videoPreloadIdx < VIDEO_PRELOAD.length) {
-          const src = VIDEO_PRELOAD[videoPreloadIdx++];
-          if (src !== inactiveSrc) {
-            inactiveFrame.src = src;
-            inactiveSrc = src;
-          }
-        }
-      }
-
-      // On load: play muted if inactive (buffering), unmuted if active (showing)
-      function attachAutoplay(iframe) {
-        iframe.addEventListener("load", () => {
-          try {
-            const vid = iframe.contentDocument.querySelector("video");
-            if (!vid) return;
-            vid.muted = !iframe.classList.contains("active");
-            vid.play().catch(() => {});
-          } catch (e) {}
-        });
-      }
-      attachAutoplay(frameA);
-      attachAutoplay(frameB);
+      });
 
       function applyMode() {
         document.body.classList.toggle("presenter-mode", isHost);
@@ -478,20 +416,9 @@
 
       function loadSlide(index) {
         current = Math.max(0, Math.min(SLIDES.length - 1, index));
-        const src = SLIDES[current];
-
-        if (inactiveSrc === src) {
-          // Video was pre-buffered — instant swap, no reload
-          swapFrames();
-          // Queue up the next video to buffer in the background
-          preloadNextVideo();
-        } else {
-          // Normal slide — load directly into active frame
-          activeFrame.src = src;
-        }
-
+        frame.src = SLIDES[current];
         const mode = isHost ? "HOST  " : "VIEWER  ";
-        hud.textContent = `${mode}${current + 1} / ${SLIDES.length}  —  ${src}`;
+        hud.textContent = `${mode}${current + 1} / ${SLIDES.length}  —  ${SLIDES[current]}`;
         updateActiveCard();
         updateTrackPosition();
       }
@@ -531,12 +458,6 @@
 
       initPreviewBar();
       loadSlide(0);
-      preloadNextVideo(); // Start buffering 11.html (Ad.mp4) immediately, muted
-
-      // ── Eager-fetch videos into browser cache ────────────────────
-      ["Ad.mp4", "pony.mp4"].forEach(v =>
-        fetch(v, { cache: "force-cache" }).catch(() => {})
-      );
 
       // ── Service worker for persistent video caching ──────────────
       if ("serviceWorker" in navigator) {
